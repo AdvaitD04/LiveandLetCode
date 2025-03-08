@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 
 function App() {
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState({ results: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -24,7 +24,13 @@ function App() {
           "Content-Type": "multipart/form-data",
         },
       });
-      setResult(response.data);
+
+      // Ensure correct data structure
+      if (response.data && Array.isArray(response.data.results)) {
+        setResult(response.data);
+      } else {
+        setError("Unexpected response format from the server.");
+      }
     } catch (error) {
       console.error("Error:", error);
       setError("An error occurred while analyzing the file. Please try again.");
@@ -77,48 +83,49 @@ function App() {
             </div>
           )}
 
-          {result && (
+          {result?.results?.length > 0 && (
             <div className="mt-8 space-y-6">
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Transcription
-                </h3>
-                <p className="mt-2 text-gray-700">{result.transcription}</p>
-              </div>
-
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Sentiment Analysis
-                </h3>
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <p className="text-gray-700">
-                      Overall Sentiment:{" "}
-                      <span className="font-semibold text-indigo-600">
-                        {result.sentiment_analysis.overall_sentiment}
-                      </span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-700">
-                      Sentiment Score:{" "}
-                      <span className="font-semibold text-indigo-600">
-                        {JSON.stringify(
-                          result.sentiment_analysis.sentiment_score
-                        )}
-                      </span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-700">
-                      Polarity:{" "}
-                      <span className="font-semibold text-indigo-600">
-                        {result.sentiment_analysis.polarity}
-                      </span>
-                    </p>
+              {result.results.map((speakerData, index) => (
+                <div key={index} className="bg-gray-50 p-6 rounded-lg">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {speakerData.speaker}
+                  </h3>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <p className="text-gray-700">
+                        Transcription:{" "}
+                        <span className="font-semibold text-indigo-600">
+                          {speakerData.transcription}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-700">
+                        Overall Sentiment:{" "}
+                        <span className="font-semibold text-indigo-600">
+                          {speakerData.sentiment_analysis.overall_sentiment}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-700">
+                        Sentiment Score:{" "}
+                        <span className="font-semibold text-indigo-600">
+                          {JSON.stringify(speakerData.sentiment_analysis.sentiment_score)}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-700">
+                        Polarity:{" "}
+                        <span className="font-semibold text-indigo-600">
+                          {speakerData.sentiment_analysis.polarity}
+                        </span>
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           )}
         </div>
@@ -127,4 +134,4 @@ function App() {
   );
 }
 
-export default App;     
+export default App;
