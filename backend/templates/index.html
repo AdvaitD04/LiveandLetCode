@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Sentiment Analysis</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        button { margin-top: 10px; padding: 10px; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload a WAV file for Sentiment Analysis</h2>
+        <input type="file" id="audioFile" accept=".wav">
+        <button onclick="uploadFile()">Analyze</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function uploadFile() {
+            let fileInput = document.getElementById("audioFile");
+            if (fileInput.files.length === 0) {
+                alert("Please select a WAV file to upload.");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("audio", fileInput.files[0]);
+
+            fetch("/analyze", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultDiv = document.getElementById("result");
+                resultDiv.style.display = "block";
+                resultDiv.innerHTML = `<h3>Transcription:</h3><p>${data.transcription}</p>
+                                      <h3>Sentiment Analysis:</h3>
+                                      <p>Overall Sentiment: <strong>${data.sentiment_analysis.overall_sentiment}</strong></p>
+                                      <p>Sentiment Score: ${JSON.stringify(data.sentiment_analysis.sentiment_score)}</p>
+                                      <p>Polarity: ${data.sentiment_analysis.polarity}</p>`;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>
